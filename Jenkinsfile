@@ -1,5 +1,8 @@
 pipeline {
     agent any
+	options {
+		skipStagesAfterUnstable()
+	}
     stages {
         stage('Build') { 
 
@@ -15,6 +18,16 @@ pipeline {
             post {
                 always {
                     recordCoverage(tools: [[parser: 'COBERTURA', pattern: '**/*.xml']], sourceDirectories: [[path: 'SimpleWebApi.Test/TestResults']])
+                }
+            }
+        }
+		stage('Deliver') {
+            steps {
+                sh 'dotnet publish SimpleWebApi --no-restore -o published'
+            }
+            post {
+                success {
+                    archiveArtifacts 'published/*.*'
                 }
             }
         }
